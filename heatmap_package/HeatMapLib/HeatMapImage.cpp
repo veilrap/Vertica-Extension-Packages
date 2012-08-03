@@ -408,7 +408,6 @@ class HeatMapImage : public TransformFunction
         // Gaussian Smooth/Blur
         if (do_gaussian) {
             if (do_contour) {
-                v_ptr->alpha = GaussianBlur(v_ptr->alpha,in_w,in_h,1.0);
                 v_ptr->red = GaussianBlur(v_ptr->red,in_w,in_h,1.0);
                 v_ptr->green = GaussianBlur(v_ptr->green,in_w,in_h,1.0);
                 v_ptr->blue = GaussianBlur(v_ptr->blue,in_w,in_h,1.0);
