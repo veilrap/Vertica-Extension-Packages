@@ -44,10 +44,17 @@ vector< vector<float> > GaussianBlur(vector< vector<float> > a, int w, int h, fl
     GWM.resize(dblbnd);
     for(int i = 0; i < dblbnd; ++i) {
         GWM[i].resize(dblbnd);
-        for (int j = 0; j < dblbnd; ++j) {
-            GWM[i][j] = -1.;
-        }
     }
+    GWM[bound][bound] = Gaussian2D(0.,0.,sigma);
+    for(int y = 1; y <= bound; ++y) {
+		for(int x = 0; x <= bound; ++x) {
+			float gauss = Gaussian2D(x,y,sigma);
+			GWM[bound+x][bound+y] = gauss;
+			GWM[bound-x][bound+y] = gauss;
+			GWM[bound+x][bound-y] = gauss;
+			GWM[bound-x][bound-y] = gauss;
+		}
+	}
     
     // for each pixel/bucket:
     for(int px = 0; px < w; ++px) {
@@ -62,16 +69,7 @@ vector< vector<float> > GaussianBlur(vector< vector<float> > a, int w, int h, fl
                 int gy = py - bound;
                 while (gy <= py + bound) {
                     if(gx >= 0 && gy >= 0 && gx < w && gy < h) {
-                        float gauss;
-                        if(GWM[gx+bound-px][gy+bound-py] != -1.) {
-                            gauss = Gaussian2D(gx-px,gy-py,sigma);
-                            GWM[gx+bound-px][gy+bound-py] = gauss;
-                            // possible optimization: add value to cells
-                            // with the same value: i.e. mirror cells
-                        }
-                        else {
-                            gauss = GWM[gx+bound-px][gy+bound-py];
-                        }
+                        float gauss = GWM[gx+bound-px][gy+bound-py];
                         count += gauss;
                         G += a[gx][gy]*gauss;
                     }

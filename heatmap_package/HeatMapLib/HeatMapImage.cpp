@@ -44,9 +44,9 @@ class HeatMapImage : public TransformFunction
     
     // miscellaneous params (optional)
     bool do_gaussian;
-    bool do_contour;
     bool do_overlay;
     bool output_rows;
+    int do_contour;
     int inputted_width;
     int inputted_height;
     const static int MAX_INPUT_WH = 2560; // maximum allowed height, width
@@ -210,8 +210,8 @@ class HeatMapImage : public TransformFunction
             else file_out_name = "/tmp/out.png"; // default output file
             
             if (srvInterface.getParamReader().containsParameter("contour"))
-                do_contour = srvInterface.getParamReader().getBoolRef("contour");
-            else do_contour = false;
+                do_contour = srvInterface.getParamReader().getIntRef("contour");
+            else do_contour = 0;
             
             if (srvInterface.getParamReader().containsParameter("overlay"))
                 do_overlay = srvInterface.getParamReader().getBoolRef("overlay");
@@ -339,29 +339,52 @@ class HeatMapImage : public TransformFunction
         for(int i = 0; i < bins_x*bins_y; ++i) {
             int t_x = i%bins_x;
             int t_y = i/bins_x;
-            if(do_contour) {
-                float val = rows_info[i].c * scalar;
-                v.red[t_x][t_y] = 0.;
-                v.green[t_x][t_y] = 0.;
-                v.blue[t_x][t_y] = 0.;
-                v.alpha[t_x][t_y] = 255. * .7;
-                if(val > 200.)
-                    v.red[t_x][t_y] = 255.;
-                else if(val > 125) {
-                    v.red[t_x][t_y] = 255;
-                    v.green[t_x][t_y] = 255;
-                }
-                else if(val > 50.) v.green[t_x][t_y] = 255;
-                else if(val > 1.) v.blue[t_x][t_y] = 155;
-                else v.alpha[t_x][t_y] = 0.;
-                    
-            }
-            else {
+            
+            if(do_contour <= 1) {
                 v.red[t_x][t_y] = 255.;
                 v.green[t_x][t_y] = 0.;
                 v.blue[t_x][t_y] = 0.;
-                v.alpha[t_x][t_y] = rows_info[i].c * scalar * .8;
+                v.alpha[t_x][t_y] = (rows_info[i].c-data_min_c) * scalar * .8;
             }
+            else {
+				float val = (rows_info[i].c-data_min_c) * scalar;
+                v.red[t_x][t_y] = 0.;
+                v.green[t_x][t_y] = 0.;
+                v.blue[t_x][t_y] = 0.;
+                v.alpha[t_x][t_y] = 255. * .5;
+                
+	            if(do_contour == 2) {
+	                v.alpha[t_x][t_y] = 255. * .5;
+	                if(val > 178.)
+	                    v.red[t_x][t_y] = 255.;
+	                else if(val > 100.) {
+	                    v.red[t_x][t_y] = 255.;
+	                    v.green[t_x][t_y] = 255.;
+	                }
+	                else v.alpha[t_x][t_y] = 0.;
+	            }
+	            else if(do_contour == 3) {
+	                if(val > 187.)
+	                    v.red[t_x][t_y] = 255.;
+	                else if(val > 119.) {
+	                    v.red[t_x][t_y] = 255.;
+	                    v.green[t_x][t_y] = 255.;
+	                }
+	                else if(val > 50.) v.green[t_x][t_y] = 255.;
+	                else v.alpha[t_x][t_y] = 0.;
+				}
+				else {
+	                if(val > 192.)
+	                    v.red[t_x][t_y] = 255.;
+	                else if(val > 129.) {
+	                    v.red[t_x][t_y] = 255.;
+	                    v.green[t_x][t_y] = 255.;
+	                }
+	                else if(val > 66.) v.green[t_x][t_y] = 255.;
+	                else if(val > 1.) v.blue[t_x][t_y] = 155.;
+	                else v.alpha[t_x][t_y] = 0.;
+				}
+			}
         }
         
         // If an input file exists, then load it and rescale to it
@@ -479,7 +502,7 @@ class HeatMapImageFactory : public TransformFunctionFactory
         // optional parameters
         parameterTypes.addVarchar(128,"inf");
         parameterTypes.addVarchar(128,"outf");
-        parameterTypes.addBool("contour");
+        parameterTypes.addInt("contour");
         parameterTypes.addBool("overlay");
         parameterTypes.addBool("output_rows");
         parameterTypes.addInt("width");
