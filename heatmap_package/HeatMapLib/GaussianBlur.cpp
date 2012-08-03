@@ -50,9 +50,9 @@ vector< vector<float> > GaussianBlur(vector< vector<float> > a, int w, int h, fl
 		for(int x = 0; x <= bound; ++x) {
 			float gauss = Gaussian2D(x,y,sigma);
 			GWM[bound+x][bound+y] = gauss;
-			GWM[bound-x][bound+y] = gauss;
-			GWM[bound+x][bound-y] = gauss;
+			GWM[bound+y][bound-x] = gauss;
 			GWM[bound-x][bound-y] = gauss;
+			GWM[bound-y][bound+x] = gauss;
 		}
 	}
     
